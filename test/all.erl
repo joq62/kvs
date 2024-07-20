@@ -52,24 +52,26 @@ start()->
 normal_test()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
 
-    io:format("mnesia system_info ~p~n",[{mnesia:system_info(),?MODULE,?FUNCTION_NAME,?LINE}]),
-    ok=kvs:create(key1,value1),
-    {ok,[{key1,value1}]}=kvs:get_all(),
-    {ok,value1}=kvs:read(key1),
-    {error,["Doesnt exists Key ",glurk,lib_kvs,_]}=kvs:read(glurk),
+    [{kvs,Node}|_]=rd:fetch_resources(kvs),
     
-    ok=kvs:update(key1,value11),
-    {ok,value11}=kvs:read(key1),
-    {error,["Doesn't exists",glurk,lib_kvs,_]}=kvs:update(glurk,value11),
+    io:format("mnesia system_info ~p~n",[{rpc:call(Node,mnesia,system_info,[],5000),?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=rd:call(kvs,create,[key1,value1],5000),
+    {ok,[{key1,value1}]}=rd:call(kvs,get_all,[],5000),
+    {ok,value1}=rd:call(kvs,read,[key1],5000),
+    {error,["Doesnt exists Key ",glurk,lib_kvs,_]}=rd:call(kvs,read,[glurk],5000),
     
-    ok=kvs:delete(key1),
-    {error,["Doesnt exists Key ",key1,lib_kvs,_]}=kvs:read(key1),
-    {error,["Doesn't exists",glurk,lib_kvs,_]}=kvs:delete(glurk),
+    ok=rd:call(kvs,update,[key1,value11],5000),
+    {ok,value11}=rd:call(kvs,read,[key1],5000),
+    {error,["Doesn't exists",glurk,lib_kvs,_]}=rd:call(kvs,update,[glurk,value11],5000),
+    
+    ok=rd:call(kvs,delete,[key1],5000),
+    {error,["Doesnt exists Key ",key1,lib_kvs,_]}=rd:call(kvs,read,[key1],5000),
+    {error,["Doesn't exists",glurk,lib_kvs,_]}=rd:call(kvs,delete,[glurk],5000),
     
   
-    ok=kvs:create(key1,value10),
-    ok=kvs:create(key2,value20),
-   {ok,[{key2,value20},{key1,value10}]}=kvs:get_all(),
+    ok=rd:call(kvs,create,[key1,value10],5000),
+    ok=rd:call(kvs,create,[key2,value20],5000),
+   {ok,[{key2,value20},{key1,value10}]}=rd:call(kvs,get_all,[],5000),
 
     ok.
     
@@ -84,8 +86,7 @@ rd_test()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
     ok=initial_trade_resources(),
     [{kvs,{kvs,'kvs@c50'}}]=rd:get_all_resources(),
-    42=rd:call(kvs,add,[20,22],5000),
-    
+    pong=rd:call(kvs,ping,[],6000),
     ok.
 %% --------------------------------------------------------------------
 %% Function: available_hosts()
@@ -109,6 +110,8 @@ load_start_release()->
     %%
     []=os:cmd(?StartCmd++" "++"daemon"),
     timer:sleep(3000),
+    pong=net_adm:ping(?Vm),
+
     pong=rpc:call(?Vm,rd,ping,[],5000),
     pong=rpc:call(?Vm,log,ping,[],5000),
     pong=rpc:call(?Vm,kvs,ping,[],5000),
