@@ -109,7 +109,7 @@ load_start_release()->
     
     %%
     []=os:cmd(?StartCmd++" "++"daemon"),
-    timer:sleep(3000),
+    timer:sleep(2*5000),
     pong=net_adm:ping(?Vm),
 
     pong=rpc:call(?Vm,rd,ping,[],5000),
@@ -139,7 +139,7 @@ load_start_release()->
 
 setup()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-
+    ok=application:start(log),
     ok=application:start(rd),
     ok=initial_trade_resources(),
     
