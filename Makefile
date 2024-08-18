@@ -23,10 +23,6 @@ all:
 	cp -r ~/erlang/simple_system/common_include .
 	rm -rf release
 	rebar3 compile
-	rebar3 release;
-	rebar3 as prod tar;
-	mkdir release;
-	cp _build/prod/rel/kvs/*.tar.gz release/kvs.tar.gz;
 	rm -rf _build*;
 	git status
 	echo Ok there you go!
