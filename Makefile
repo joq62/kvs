@@ -24,6 +24,7 @@ all:
 	rm -rf release
 	rebar3 compile
 	rm -rf _build*;
+	rm -rf rebar.lock;
 	git status
 	echo Ok there you go!
 	#INFO: no_ebin_commit ENDED SUCCESSFUL
